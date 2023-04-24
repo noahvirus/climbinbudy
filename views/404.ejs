@@ -1,0 +1,29 @@
+<%-include('partials/website_tab_data.ejs')%>
+    <style>
+      /* Add custom styles here */
+      .container {
+      
+        text-align: center;
+        margin-top: 100px;
+      }
+      body{
+        background-color: black;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container" >
+      <h1>Uh oh</h1>
+      
+      <p>you've stumbled upon a part of the website with nothing to show.</p>
+      <p>Please go back to the <% if (typeof is_user !== 'undefined') { %>
+        <a href="/home">Home</a>
+      <% } else { %>
+        <a href="/login">Login</a>
+      <% } %> page, theres nothing to see.</p>
+      <p><img src="back_404.png" alt="uh oh no picture either"></p>
+    </div>
+    <!-- Add Bootstrap JS link here -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  </body>
+</html>
