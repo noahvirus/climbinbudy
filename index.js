@@ -18,14 +18,16 @@ const paypal = require('@paypal/checkout-server-sdk')
 const Environment = paypal.core.SandboxEnvironment;
 const PayPalClient = new paypal.core.PayPalHttpClient(new Environment(process.env.PAYPAL_CLIENT_ID,process.env.PAYPAL_CLIENT_SECRET))
 //get workout data
-async function checkMembership(id){
+async function checkMembership(req){
   const sql = "select good_until from users where id = ? and good_until > CURDATE()";
-  const values = [id]
+  const values = [req.session.userId]
   const [rows, fields] = await connection.promise().query(sql, values);
-  if(rows[0]){
+  console.log(rows)
+  if(rows[0]!==undefined){
+    console.log("true")
   return true;
   }else{
-    return false
+    console.log("false")
   }
 }
 app.set('view engine', 'ejs');
@@ -110,8 +112,13 @@ app.post('/register', async (req, res) => {
       const hashedPassword = await bcrypt.hash(password, 10);
   
       // Insert the new user into the database
-      const sql = 'INSERT INTO users (username, email, password) VALUES (?, ?, ?)';
-      const values = [username, email, hashedPassword];
+      const currentDate = new Date();
+      const year = currentDate.getFullYear();
+      const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+      const day = String(currentDate.getDate()).padStart(2, '0');
+      const formattedDate = `${year}-${month}-${day}`;
+      const sql = 'INSERT INTO users (username, email, password, good_until) VALUES (?, ?, ?,DATE_ADD(CURDATE(), interval 7 DAY))';
+      const values = [username, email, hashedPassword, formattedDate];
   
       connection.query(sql, values, (err, result) => {
         if (err) throw err;
@@ -177,8 +184,8 @@ app.post('/register', async (req, res) => {
   });
   //start the home page
   app.get('/home',async (req,res)=>{
-    const Membershipexpired = await checkMembership(req.session.id);
-    if(req.session.userId!==undefined && !Membershipexpired){
+    const Membershipexpired = await checkMembership(req);
+    if(req.session.userId!==undefined && Membershipexpired){
       
       let sql = 'select crimp, sloper, pocket, pinch from climb_info where user_id = ?';
       let values = [req.session.userId];
@@ -291,8 +298,8 @@ app.post('/submit-holds', (req,res)=>{
 
 });
 app.get('/learn',async(req,res)=>{
-  const Membershipexpired = await checkMembership(req.session.id);
-  if(req.session.userId!==undefined && !Membershipexpired){
+  const Membershipexpired = await checkMembership(req);
+  if(req.session.userId!==undefined && Membershipexpired){
     res.render('learn',{focus:req.body.id, username:req.session.username});
   }else if(req.session.userId===undefined){
     res.redirect('/login');
@@ -301,8 +308,8 @@ app.get('/learn',async(req,res)=>{
   }
 })
 app.get('/train',async(req,res)=>{
-  const Membershipexpired = await checkMembership(req.session.id);
-  if(req.session.userId!==undefined && !Membershipexpired){
+  const Membershipexpired = await checkMembership(req);
+  if(req.session.userId!==undefined && Membershipexpired){
     var sql = 'SELECT overall, '
     if(req.body.id=='crimp'){
       sql=sql+'crimp'
@@ -334,12 +341,12 @@ app.get('/train',async(req,res)=>{
   }
 })
 //render payment page
-app.get('/payment',(req,res)=>{
-  const Membership = checkMembership(req.session.id);
-  if(req.session.userId!==undefined && Membership){
+app.get('/payment',async(req,res)=>{
+  const Membership = await checkMembership(req);
+  if(req.session.userId!==undefined && !Membership){
     res.render('payment', {clientID: process.env.PAYPAL_CLIENT_ID});
   }
-  else if(req.session.userId!==undefined){
+  else if(req.session.userId===undefined){
     res.redirect('/login');
   }else{
     res.redirect('/home')
@@ -375,7 +382,6 @@ app.post('/create-order', async (req, res) => {
       }
     ]
   });
-  console.log(request);
   try {
     const order = await PayPalClient.execute(request);
     res.json({ id: order.result.id });
