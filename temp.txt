@@ -1,0 +1,5 @@
+CREATE TRIGGER add_climb_info AFTER INSERT ON users
+FOR EACH ROW
+BEGIN
+  INSERT INTO climb_info (user_id) VALUES (NEW.user_id);
+END;

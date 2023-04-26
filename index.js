@@ -1,3 +1,4 @@
+require('dotenv').config()
 const util = require('util')
 const fs = require('fs')
 var express = require('express');
@@ -13,16 +14,19 @@ const crypto = require('crypto');
 const { error } = require('console');
 const path = require('path')
 var favicon = require('serve-favicon')
+const paypal = require('@paypal/checkout-server-sdk')
+const Environment = paypal.core.SandboxEnvironment;
+const PayPalClient = new paypal.core.PayPalHttpClient(new Environment(process.env.PAYPAL_CLIENT_ID,process.env.PAYPAL_CLIENT_SECRET))
 //get workout data
-function get_workout_array(type){
-  const data = fs.readFileSync('./workout_data_tables/'+type+'.txt', 'ascii');
-  
-
-
-
-
-
-  return data;
+async function checkMembership(id){
+  const sql = "select good_until from users where id = ? and good_until >= CURDATE()";
+  const values = [id]
+  const [rows, fields] = await connection.promise().query(sql, values);
+  if(rows[0]){
+  return true;
+  }else{
+    return false
+  }
 }
 app.set('view engine', 'ejs');
 app.use(bodyParser.json());
@@ -45,10 +49,10 @@ app.use(express.static('public'));
 app.use('/favicon.ico',express.static('public/favicon.ico'));
 // create a connection to the database
 const connection = mysql.createConnection({
-  host: '34.122.10.26',
-  user: 'root',
-  password: 'N71164277v',
-  database: 'Climbing_DB'
+  host: 'localhost',
+  user: process.env.USERNAME,
+  password: process.env.PASSWORD,
+  database: 'climbing_db'
 });
 
 // connect to the database
@@ -190,6 +194,7 @@ app.post('/register', async (req, res) => {
         divs[1]=temp;
       }
       res.render('home',{username: req.session.username, divs: divs});
+      console.log(checkMembership(req.session.id));
     }else{
       res.redirect('/login');
     }
@@ -310,6 +315,64 @@ app.post('/train',async(req,res)=>{
     else{
       res.redirect('/login');
     }
+})
+//render payment page
+app.get('/payment',(req,res)=>{
+  if(req.session.userId!==undefined){
+    res.render('payment', {clientID: process.env.PAYPAL_CLIENT_ID});
+  }
+  else{
+    res.redirect('/login');
+  }
+})
+app.post('/create-order', async (req, res) => {
+  if(req.session.userId!==undefined){
+  const request = new paypal.orders.OrdersCreateRequest();
+  const total = 6;
+  request.prefer("return=representation");
+  request.requestBody({
+    intent: 'CAPTURE',
+    purchase_units: [
+      {
+        amount:{
+          currency_code: 'USD',
+          value: total * req.body.items.length,
+          breakdown: {
+            item_total: {
+              currency_code: "USD",
+              value: total * req.body.items.length
+            }
+          }
+        },
+        items: req.body.items.map(item => ({
+          name: 'Membership to Climbing Buddy',
+          unit_amount: {
+            currency_code: "USD",
+            value: total
+          },
+          quantity: 1
+        }))
+      }
+    ]
+  });
+  console.log(request);
+  try {
+    const order = await PayPalClient.execute(request);
+    res.json({ id: order.result.id });
+    
+  } catch (err) {
+    res.status(505).json({ error: err.message });
+  }
+}else{
+  res.redirect('/login')
+}
+});
+app.get('/handle_success', async (req,res)=>{
+  const username = req.session.userId;
+  const sql = "update users set good_until = DATE_ADD(CURDATE(), interval 1 MONTH) where id = ?";
+  const values = [req.session.userId]
+  const [rows, fields] = await connection.promise().query(sql, values);
+  res.redirect('/home');
 })
 
 
