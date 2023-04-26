@@ -9,7 +9,7 @@
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
   <style>a{font-family: Arial, Helvetica, sans-serif;}</style>
-    <style>body{background-color:grey; font: arial;}</style>
+    <style>body{background-color:grey; font: arial;color: white;}</style>
 </head>
 <body>
     <script>
@@ -18,7 +18,7 @@
             Form.submit()
         }
     </script>
-    <!-- nav bar stuff-->>
+    <!-- nav bar stuff-->
   <nav class="navbar navbar-expand-lg navbar-light bg-gray">
     <a class="navbar-brand" href="/home">Climbing Buddy</a>
     <button class ="navbar-toggler" type ="button" data-toggle ="collapse" data-target ="#colNav">
@@ -30,7 +30,10 @@
           <a class="nav-link" href="/home">Home <span class="sr-only">(current)</span></a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/lessons">Lessons</a>
+          <a class="nav-link" href="/learn">Lessons</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/train">Training</a>
         </li>
       </ul>
     </div>
@@ -42,7 +45,7 @@
   <style>
     .welcome-message {
       position: absolute;
-      top: 20%;
+      top: 16%;
       left: 50%;
       transform: translate(-50%, -50%);
       text-align: center;
@@ -74,7 +77,7 @@
   </style>
   <div class="grid-container" id="hold_info"> 
     <% for (let i = 0; i < divs.length; i++) { %>
-        <form method="POST" action="/train" id = '<%=i%>'>
+        <form method="GET" action="/train" id = '<%=i%>'>
             <input type="hidden" name="id" value="<%=divs[i][1]%>">  
         <div class="grid-item" onclick="submitForm(<%=i%>)" style="background-image: url('<%=divs[i][1]%>.png'); background-size: cover;background-position: center -50px;">
             <p style="text-align: center;"><b>
@@ -91,7 +94,7 @@
     <h1>or would you like to learn?</h1>
   </div>
   
-  <div class="grid-container" style="height: 10vh;" >
+  <div class="grid-container" style="height: 20vh;" >
     <form method="post" action="/learn" id="11">
     <input type="hidden" name="id" value="foot_placement">
     <div class="grid-item" onclick="submitForm('11')">

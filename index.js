@@ -19,7 +19,7 @@ const Environment = paypal.core.SandboxEnvironment;
 const PayPalClient = new paypal.core.PayPalHttpClient(new Environment(process.env.PAYPAL_CLIENT_ID,process.env.PAYPAL_CLIENT_SECRET))
 //get workout data
 async function checkMembership(id){
-  const sql = "select good_until from users where id = ? and good_until >= CURDATE()";
+  const sql = "select good_until from users where id = ? and good_until > CURDATE()";
   const values = [id]
   const [rows, fields] = await connection.promise().query(sql, values);
   if(rows[0]){
@@ -50,7 +50,7 @@ app.use('/favicon.ico',express.static('public/favicon.ico'));
 // create a connection to the database
 const connection = mysql.createConnection({
   host: 'localhost',
-  user: process.env.USERNAME,
+  user: process.env.USER,
   password: process.env.PASSWORD,
   database: 'climbing_db'
 });
@@ -117,6 +117,7 @@ app.post('/register', async (req, res) => {
         if (err) throw err;
         req.session.userId = result.insertId;
         req.session.username = username
+        req.session.errorMessage = undefined;
         res.redirect('/evaluation');
       });
     } catch (err) {
@@ -162,6 +163,7 @@ app.post('/register', async (req, res) => {
       // If the username and password are correct, set the user ID in the session
       req.session.username=user.username;
       req.session.userId = user.id;
+      req.session.errorMessage = undefined;
       res.redirect('/home');
     } catch (err) {
       console.error(err);
@@ -175,7 +177,9 @@ app.post('/register', async (req, res) => {
   });
   //start the home page
   app.get('/home',async (req,res)=>{
-    if(req.session.userId!==undefined){
+    const Membershipexpired = await checkMembership(req.session.id);
+    if(req.session.userId!==undefined && !Membershipexpired){
+      
       let sql = 'select crimp, sloper, pocket, pinch from climb_info where user_id = ?';
       let values = [req.session.userId];
       let [rows, fields] = await connection.promise().query(sql, values);
@@ -194,18 +198,21 @@ app.post('/register', async (req, res) => {
         divs[1]=temp;
       }
       res.render('home',{username: req.session.username, divs: divs});
-      console.log(checkMembership(req.session.id));
-    }else{
+      
+    }else if(req.session.userId===undefined){
       res.redirect('/login');
+    }else{
+      res.redirect('/payment')
     }
   });
   //gives the evaluation page
-app.get('/evaluation',(req,res)=>{
+app.get('/evaluation',async (req,res)=>{
+  
   if(req.session.userId!==undefined){
     const errorMessage = req.session.errorMessage;
-    req.session.errorMessage = null;
+    req.session.errorMessage = undefined;
    res.render('evaluation', { errorMessage });
-  }else{
+  }else if(req.session.userId===undefined){
     res.redirect('/login');
   }
 });
@@ -227,7 +234,7 @@ async function update_general_climbing_info(req){
   await connection.promise().query(sql1, new_val);
 }
 app.post('/submit-rating',async(req,res)=>{
-  if(req.body.VGrade !== undefined){
+  if(req.session.userId!==undefined){
     update_general_climbing_info(req);
   }else{
     const errorMessage = req.session.errorMessage;
@@ -235,18 +242,23 @@ app.post('/submit-rating',async(req,res)=>{
     res.redirect('evaluation');
     return;
   }
+  req.session.errorMessage = undefined;
   if(req.body.holds === undefined || req.body.holds == '0'){
+  
     res.redirect('/home')
+  }else if(req.session.userId===undefined){
+    res.redirect('/login');
   }else{
     res.redirect('/holdpage')
   }
 });
-app.get('/holdpage',(req,res)=>{
+app.get('/holdpage',async (req,res)=>{
+  
   if(req.session.userId!==undefined){
     const errorMessage = req.session.errorMessage;
     req.session.errorMessage = null;
    res.render('holdpage', { errorMessage });
-  }else{
+  }else if(req.session.userId===undefined){
     res.redirect('/login');
   }
 })
@@ -278,16 +290,19 @@ app.post('/submit-holds', (req,res)=>{
   }
 
 });
-app.post('/learn',(req,res)=>{
-  if(req.session.userId!==undefined){
+app.get('/learn',async(req,res)=>{
+  const Membershipexpired = await checkMembership(req.session.id);
+  if(req.session.userId!==undefined && !Membershipexpired){
     res.render('learn',{focus:req.body.id, username:req.session.username});
-    }
-    else{
-      res.redirect('/login');
-    }
+  }else if(req.session.userId===undefined){
+    res.redirect('/login');
+  }else{
+    req.redirect('/payment')
+  }
 })
-app.post('/train',async(req,res)=>{
-  if(req.session.userId!==undefined){
+app.get('/train',async(req,res)=>{
+  const Membershipexpired = await checkMembership(req.session.id);
+  if(req.session.userId!==undefined && !Membershipexpired){
     var sql = 'SELECT overall, '
     if(req.body.id=='crimp'){
       sql=sql+'crimp'
@@ -297,6 +312,8 @@ app.post('/train',async(req,res)=>{
       sql=sql+'pocket'
     }else if(req.body.id=='pinch'){
       sql=sql+'pinch'
+    }else{
+      sql='SELECT overall'
     }
     sql=sql+' FROM climb_info WHERE user_id = ?;'
     const values = [req.session.userId]
@@ -308,21 +325,24 @@ app.post('/train',async(req,res)=>{
         rows[0]['overall']=rows[0]['overall']+1;
       }
     }
-    const arr_workouts = get_workout_array(req.body.id)
-    console.log(arr_workouts)
+    
     res.render('train',{username: req.body.username, type: req.body.id, grade:rows[0]['overall']});
-    }
-    else{
-      res.redirect('/login');
-    }
+  }else if(req.session.userId===undefined){
+    res.redirect('/login');
+  }else{
+    req.redirect('/payment')
+  }
 })
 //render payment page
 app.get('/payment',(req,res)=>{
-  if(req.session.userId!==undefined){
+  const Membership = checkMembership(req.session.id);
+  if(req.session.userId!==undefined && Membership){
     res.render('payment', {clientID: process.env.PAYPAL_CLIENT_ID});
   }
-  else{
+  else if(req.session.userId!==undefined){
     res.redirect('/login');
+  }else{
+    res.redirect('/home')
   }
 })
 app.post('/create-order', async (req, res) => {
