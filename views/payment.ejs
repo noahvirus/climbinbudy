@@ -5,16 +5,17 @@
   <body>
     <style>a{font-family: Arial, Helvetica, sans-serif;}</style>
     <style>body{background-color:grey; font: arial; color: white;}</style>
+    
     <div class="container text-center">
-        <div class="d-flex justify-content-center">
-            <h1 id = "h1">Looks like your membership has expired, renewing it is 6$</h1>
-          <div id="paypal"></div>
-          <h1 id = "h1">Or for a limited time you can click the button below</h1>
-          <form method="get" action="/handle_success">
-            <button type="submit" class="btn btn-primary" id="signup">Free Signup</button>
-          </form>
-        </div>
+      <div class="d-flex flex-column align-items-center">
+        <h1 id="h1">Looks like your membership has expired. Renewing it is $6.</h1>
+        <div id="paypal" style="margin:20%;"></div>
+        <h1 id="h1">Or for a limited time, you can click the button below.</h1>
+        <form method="get" action="/handle_success">
+          <button type="submit" class="btn btn-primary" id="signup">Free Signup</button>
+        </form>
       </div>
+    </div>
   </body>
   
 </html>

@@ -22,28 +22,23 @@ async function checkMembership(req){
   const sql = "select good_until from users where id = ? and good_until > CURDATE()";
   const values = [req.session.userId]
   const [rows, fields] = await connection.promise().query(sql, values);
-  console.log(rows)
   if(rows[0]!==undefined){
-    console.log("true")
   return true;
   }else{
-    console.log("false")
   }
 }
 app.set('view engine', 'ejs');
 app.use(bodyParser.json());
-
+app.use(
+  bodyParser.urlencoded({
+      extended: true,
+  })
+);
 app.use(
   session({
     secret: crypto.randomBytes(64).toString('hex'),
     saveUninitialized: false,
     resave: false,
-  })
-);
-
-app.use(
-  bodyParser.urlencoded({
-      extended: true,
   })
 );
 app.use(express.static('public'));
@@ -187,7 +182,7 @@ app.post('/register', async (req, res) => {
     const Membershipexpired = await checkMembership(req);
     if(req.session.userId!==undefined && Membershipexpired){
       
-      let sql = 'select crimp, sloper, pocket, pinch from climb_info where user_id = ?';
+      let sql = 'select endurance, flexibility, strength from climb_info where user_id = ?';
       let values = [req.session.userId];
       let [rows, fields] = await connection.promise().query(sql, values);
       const data = rows[0];
@@ -196,14 +191,8 @@ app.post('/register', async (req, res) => {
         divs.push([data[key],key])
       }
       divs.sort((a,b)=>a[0]-b[0])
-      sql = 'select last_worked from climb_info where user_id = ?';
-      values = [req.session.userId];
-      [rows, fields] = await connection.promise().query(sql, values);
-      if(rows[0].last_worked === divs[0][1]){
-        let temp =divs[0];
-        divs[0]=divs[1];
-        divs[1]=temp;
-      }
+      divs.push([10000,"Overall"])
+      
       res.render('home',{username: req.session.username, divs: divs});
       
     }else if(req.session.userId===undefined){
@@ -270,24 +259,24 @@ app.get('/holdpage',async (req,res)=>{
   }
 })
 async function update_holds(req){
-  const sql = 'SELECT crimp, sloper, pocket, pinch FROM climb_info WHERE user_id = ?;'
+  console.log(req.body)
+  const sql = 'SELECT endurance, strength, flexibility FROM climb_info WHERE user_id = ?;'
   const values = [req.session.userId]
   const [rows, fields] = await connection.promise().query(sql, values);
   
-  let crimp = rows[0].crimp;
-  let sloper = rows[0].sloper;
-  let pocket = rows[0].pocket;
-  let pinch = rows[0].pinch;
-  if(req.body.crimps!==undefined){crimp = req.body.crimps}
-  if(req.body.slopers!==undefined){sloper = req.body.slopers}
-  if(req.body.pockets!==undefined){pocket = req.body.pockets}
-  if(req.body.pinches!==undefined){pinch= req.body.pinches}
-  const new_val = [crimp,sloper,pocket,pinch,req.session.userId]
+  let endurance = rows[0].endurance;
+  let strength = rows[0].strength;
+  let flexibility = rows[0].flexibility;
+  if(req.body.Endurance!==undefined){endurance= req.body.Endurance}
+  if(req.body.Strength!==undefined){ strength = req.body.Strength}
+  if(req.body.Flexibility!==undefined){flexibility = req.body.Flexibility}
+  const new_val = [endurance,strength,flexibility,req.session.userId]
   
-  sql1 = "UPDATE climb_info SET crimp = ?, sloper = ?, pocket = ?, pinch = ? WHERE user_id = ?;"
+  sql1 = "UPDATE climb_info SET endurance = ?, strength = ?, flexibility = ? WHERE user_id = ?;"
   connection.promise().query(sql1, new_val);
 }
 app.post('/submit-holds', (req,res)=>{
+  
   if(req.session.userId!==undefined){
   update_holds(req);
   res.redirect('/home');
@@ -300,7 +289,146 @@ app.post('/submit-holds', (req,res)=>{
 app.get('/learn',async(req,res)=>{
   const Membershipexpired = await checkMembership(req);
   if(req.session.userId!==undefined && Membershipexpired){
-    res.render('learn',{focus:req.body.id, username:req.session.username});
+    other=[]
+    moves=[]
+    hooks=[]
+    placement=[]
+    new_items=[]
+    var get_lesson= "select * from lessons;"
+    const [lessons, test] = await connection.promise().query(get_lesson);
+    for(let lesson of lessons){
+      if(lesson.focus == 'other'){
+        other.push(lesson);
+      }
+      if(lesson.focus == 'placement'){
+        placement.push(lesson);
+      }
+      if(lesson.focus == 'moves'){
+        moves.push(lesson);
+      }
+      if(lesson.focus == 'hooks'){
+        hooks.push(lesson);
+      }
+      if(lesson.isnew == '1'){
+        new_items.push(lesson);
+      }
+    }
+    res.render('learn',{focus:req.body.id, username:req.session.username, other: other, placement: placement, hooks: hooks, moves: moves, new: new_items});
+  }else if(req.session.userId===undefined){
+    res.redirect('/login');
+  }else{
+    req.redirect('/payment')
+  }
+})
+app.post('/train',async(req,res)=>{
+  console.log(req.body)
+  const Membershipexpired = await checkMembership(req);
+  if(req.session.userId!==undefined && Membershipexpired){
+    const type = req.body.id;
+    const sql = "select overall from climb_info where user_id = ?";
+    const values = [req.session.userId]
+    const [rows, fields] = await connection.promise().query(sql, values);
+    const overall= rows[0].overall;
+    workouts=[
+      {
+        name: "Easy",
+      },
+      {
+        name: "Medium",
+      },
+      {
+        name: "Hard",
+      }
+    ]
+    stretches=[]
+    endurance=[]
+    strength=[]
+    new_items=[]
+    var get_exercises = "";
+    console.log(req.body.Location)
+    if(req.body.Location){
+      if(req.body.Location=="gym"){
+      if(overall > 2){
+        get_exercises= "select * from exercises"
+      }else{
+        get_exercises= "select * from exercises where difficulty=1"
+      }
+      const [exercises, test] = await connection.promise().query(get_exercises);
+      for(let exercise of exercises){
+        if(exercise.focus == 'stretch'){
+          stretches.push(exercise);
+        }
+        if(exercise.focus == 'endurance'){
+          endurance.push(exercise);
+        }
+        if(exercise.focus == 'strength'){
+          strength.push(exercise);
+        }
+        if(exercise.isnew == '1'){
+          new_items.push(exercise);
+        }
+      }
+    }else{
+      if(overall > 2){
+        get_exercises= "select * from exercises where gym = 0"
+      }else{
+        get_exercises= "select * from exercises where difficulty=1 and gym=0"
+      }
+      const [exercises, test] = await connection.promise().query(get_exercises);
+      for(let exercise of exercises){
+        if(exercise.focus == 'stretch'){
+          stretches.push(exercise);
+        }
+        if(exercise.focus == 'endurance'){
+          endurance.push(exercise);
+        }
+        if(exercise.focus == 'strength'){
+          strength.push(exercise);
+        }
+        if(exercise.isnew == '1'){
+          new_items.push(exercise);
+        }
+      }
+    }
+  }else{
+    if(overall > 2){
+      get_exercises= "select * from exercises"
+    }else{
+      get_exercises= "select * from exercises where difficulty=1"
+    }
+    const [exercises, test] = await connection.promise().query(get_exercises);
+    for(let exercise of exercises){
+      if(exercise.focus == 'stretch'){
+        stretches.push(exercise);
+      }
+      if(exercise.focus == 'endurance'){
+        endurance.push(exercise);
+      }
+      if(exercise.focus == 'strength'){
+        strength.push(exercise);
+      }
+      if(exercise.isnew == '1'){
+        new_items.push(exercise);
+      }
+    }
+  }
+  req.session.workouts = workouts
+  req.session.stretches = stretches
+  req.session.endurance = endurance
+  req.session.strength=strength
+  req.session.exercise_focus = req.body.exercise_focus
+  req.session.new = new_items;
+  if(req.body.exercise_focus=="Strength"||req.body.exercise_focus=="strength"){
+    res.render('train',{username: req.body.username,workouts: undefined,stretches: undefined,endurance: undefined,strength: strength,new_items: undefined,type: type});
+  }else if(req.body.exercise_focus=="Flexibility"||req.body.exercise_focus=="flexibility"||req.body.exercise_focus=="Stretches"||req.body.exercise_focus=="stretches"){
+    res.render('train',{username: req.body.username,workouts: undefined,stretches: stretches,endurance: undefined,strength: undefined,new_items: undefined,type: type});
+  }
+  else if(req.body.exercise_focus=="Endurance"||req.body.exercise_focus=="endurance"){
+    res.render('train',{username: req.body.username,workouts: undefined,stretches: undefined,endurance: endurance,strength: undefined,new_items: undefined,type: type});
+  }else{
+    res.render('train',{username: req.body.username,workouts: workouts,stretches: stretches,endurance: endurance,strength: strength,new_items: new_items,type: type});
+  }
+  
   }else if(req.session.userId===undefined){
     res.redirect('/login');
   }else{
@@ -308,36 +436,14 @@ app.get('/learn',async(req,res)=>{
   }
 })
 app.get('/train',async(req,res)=>{
-  const Membershipexpired = await checkMembership(req);
-  if(req.session.userId!==undefined && Membershipexpired){
-    var sql = 'SELECT overall, '
-    if(req.body.id=='crimp'){
-      sql=sql+'crimp'
-    }else if(req.body.id=='sloper'){
-      sql=sql+'sloper'
-    }else if(req.body.id=='pocket'){
-      sql=sql+'pocket'
-    }else if(req.body.id=='pinch'){
-      sql=sql+'pinch'
-    }else{
-      sql='SELECT overall'
-    }
-    sql=sql+' FROM climb_info WHERE user_id = ?;'
-    const values = [req.session.userId]
-    const [rows, fields] = await connection.promise().query(sql, values);
-    if(rows[0][req.body.id] <= 1){
-      rows[0]['overall']=rows[0]['overall']-1;
-    }else if(rows[0][req.body.id] >= 5){
-      if(rows[0]['overall'] <5){
-        rows[0]['overall']=rows[0]['overall']+1;
-      }
-    }
-    
-    res.render('train',{username: req.body.username, type: req.body.id, grade:rows[0]['overall']});
-  }else if(req.session.userId===undefined){
+  const Membership = await checkMembership(req);
+  if(req.session.userId!==undefined && Membership){
+    res.render('train',{username: req.body.username,workouts: req.session.workouts,stretches: req.session.stretches,endurance: req.session.endurance,strength: req.session.strength,new_items: req.session.new, type: 'overall'});
+  }
+  else if(req.session.userId===undefined){
     res.redirect('/login');
   }else{
-    req.redirect('/payment')
+    res.redirect('/home')
   }
 })
 //render payment page
@@ -385,7 +491,6 @@ app.post('/create-order', async (req, res) => {
   try {
     const order = await PayPalClient.execute(request);
     res.json({ id: order.result.id });
-    
   } catch (err) {
     res.status(505).json({ error: err.message });
   }
@@ -400,14 +505,105 @@ app.get('/handle_success', async (req,res)=>{
   const [rows, fields] = await connection.promise().query(sql, values);
   res.redirect('/home');
 })
+function get_random (list) {
+  return list[Math.floor((Math.random()*list.length))];
+}
+function clean(id){
+  new_string = ""
+  if(id!=undefined){
+  for(var i = 0; i <id.length;i++){
+    if(id[i] != " "){
+      new_string +=id[i]
+    }else{
+      new_string +="_"
+    }
+  }}
+  return new_string
+}
+app.post('/calculate_workout', (req,res)=>{
+  console.log(req.body);
+  id=req.body.id;
+  req.session.exercise_num=undefined
+  if(id!=""){
+    id=clean(id);
+    if(id!="Hard" && id != "Medium" && id != "Easy"){
+      let exercise_list = [id];
+      req.session.exercise_list = exercise_list
+    }else{
+      let exercise_list=["dynamic_stretches"]
+      let difficulty = 0;
+      if(id =="Hard"){
+        difficulty=6
+      }else if(id == "Medium"){
+        difficulty = 4
+      }else{
+        difficulty = 2
+      }
+      let all_list = req.session.strength.concat(req.session.endurance)
+      while(difficulty>0){
+        let item = get_random(all_list)
+        difficulty = difficulty - item.difficulty;
+        exercise_list = exercise_list.concat(item.name)
+      }
+      req.session.exercise_list=exercise_list.concat('static_stretches')
+    }
+    res.redirect('/exercises')
+  }else{
+    res.render('/train', { errorMessage: req.session.errorMessage })
+  }
+  //all i need to do is make it calculate easy medium and hard
+})
+//display handler and continue for the page
+app.get('/exercises', async(req,res)=>{
+  console.log(req.session.current_exercise)
+  const Membership = await checkMembership(req);
+  if(req.session.userId!==undefined && Membership){
+    // render/continue
+    if(req.session.exercise_num>req.session.exercise_list.length){
+      res.redirect('workouts')
+    }else if(req.session.exercise_num === undefined){
+      req.session.exercise_num = 1
+      console.log(req.session.exercise_list[0])
+      let a =clean(req.session.exercise_list[0])
+      if(a!==""){
+      res.render("exercises/"+a)
+      }else{
+        res.render('train',{username: req.body.username,workouts: req.session.workouts,stretches: req.session.stretches,endurance: req.session.endurance,strength: req.session.strength,new_items: req.session.new, type: 'overall'});
+      }
+    }
+else{
+      req.session.exercise_num += 1
+      let a =clean(req.session.exercise_list[req.session.exercise_num-1])
+      if(a!==""){
+      res.render("exercises/"+a)
+      }else{
+        res.render('train',{username: req.body.username,workouts: req.session.workouts,stretches: req.session.stretches,endurance: req.session.endurance,strength: req.session.strength,new_items: req.session.new, type: 'overall'});
+      }
+    }
+  }
+  else if(req.session.userId===undefined){
+    res.redirect('/login');
+  }else{
+    res.redirect('/home')
+  }
+})
+app.post('/get_lesson',async(req,res)=>{
+  console.log(req.session.current_exercise)
+  const Membership = await checkMembership(req);
+  if(req.session.userId!==undefined && Membership){
+    res.render('lessons/'+clean(req.body.id))
+  }else if(req.session.userId===undefined){
+      res.redirect('/login');
+    }else{
+      res.redirect('/home')
+    }
+})
 
 
 
 
 
-
-
-  //custom error for page not found
+  //custom 404 error for page not found
   app.use(function(req, res, next) {
     res.status(404);
     res.locals.is_user = req.session.userId; // pass username as a local variable

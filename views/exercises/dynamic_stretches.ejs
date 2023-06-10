@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
   <style>a{font-family: Arial, Helvetica, sans-serif;}</style>
     <style>body{background-color:grey; font: arial;color: white;}</style>
+    <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body>
     <script>
@@ -42,67 +43,60 @@
     </div>
     
   </nav>
+  <!-- Write about the benefits of dynamic stretches for climbing -->
   <style>
-    .welcome-message {
-      position: absolute;
-      top: 16%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center;
+    body {
+      margin: 0;
+      padding: 20px;
     }
+  
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: left;
+    }
+    .next-page {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  z-index: 9999;
+}
+
+.arrow {
+  width: 12px;
+  height: 12px;
+  border-top: 2px solid #fff;
+  border-right: 2px solid #fff;
+  transform: rotate(45deg);
+  margin-bottom: 2px;
+}
   </style>
-  <div class="welcome-message">
-    <h1>Welcome <%= username %>!</h1>
-    <p>Are you wanting to train</p>
-  </div>
-  <style>
-    .grid-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 50vh;
-    }
+  <div class="container"></div>
+  <h1>What are Dynamic Stretches?</h1>
+  <p>Dynamic Stretches are used to warm muscles up before exercises, there are many benefits, however the most notable are an increase in blood flow and reduced risk of injury. <n>The places at the biggest risk of injury while climbing are your arms and wrist, so lets warm those up.</p>
   
-    .grid-item {
-      width: 200px;
-      height: 200px;
-      border: 1px solid black;
-      margin: 10px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 24px;
-      cursor: pointer;
-    }
-  </style>
-  <div class="grid-container" id="hold_info"> 
-    <% for (let i = 0; i < divs.length; i++) { %>
-        <form method="post" action="/train" id = '<%=i%>'>
-            <input type="hidden" name="exercise_focus" value="<%=divs[i][1]%>">  
-        <div class="grid-item" onclick="submitForm( <%=i%> )" style="background-image: url('<%=divs[i][1]%>.png'); background-size: cover;background-position: center -50px;">
-            <p style="text-align: center;"><b>
-            <% if(i==0){%>
-                Recommended<br>
-            <%}%>
-            <%= divs[i][1] %></b></p>
-        </div>
-        </form>
-    <% } %>  
-  </div>
-  <div class="welcome-message" style="top: 50%;">
-    <p>Would you like to revaluate your <a href="/evaluation">grades</a>?</p>
-    <h1>or would you like to learn?</h1>
-  </div>
-  
-  <div class="grid-container" style="height: 20vh;" >
-    <form method="get" action="/learn" id="11">
-    <input type="hidden" name="id" value="learn">
-    <div class="grid-item" onclick="submitForm('11')">
-        <p>Learn</p>
-    </div>
-    </form>
-  </div>
-  
+  <h1>Wrist Stretches</h1>
+  <p>For these get on your hands and knees, rock back and forth with your hands forwards, then do the same with your hands pointed towards you, these will help warm your wrist up as well as overtime increase your range of motion, see the video below for an example. If this exercise feels a little weird that's ok because we have plenty more that can help</p>
+  <h1>
+    Frog hop's
+  </h1>
+  <p>Frog hops are a full body exercise, in which you hop up onto your hands trying to control the movement up and down to help build strength, see the video below for an example</p>
+  <h1>Bear Crawl's</h1>
+  <p>Thats right everyone's favorite gym class exercise from middle school can be a warm up for climbing, focussing on building full body strength and dexterity while warming you up for the sends that follow. To do this exercise crawl around on all fours, while trying to keep your butt in the air.</p>
+</div>
+<a href="exercises" class="next-page">
+  <span class="arrow"></span>
+</a>
+
+
   
   <!-- Bootstrap JS -->
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
@@ -110,14 +104,6 @@
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
   <div class="container" style="display: flex; flex-direction: column; min-height: 0vh;">
     <!-- Your existing code goes here -->
-    <footer style="position: fixed; bottom: 10vh; width: 59%;">
-        <div style="text-align:center;">
-            <h1>TikTok</h1>
-            <a href="https://www.tiktok.com/@noah.virus">
-                <p>@noah.virus</p>
-            </a>
-        </div>
-    </footer>
   </div>
 </body>
 </html>

@@ -26,12 +26,151 @@
           <a class="nav-link" href="/learn">Lessons</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="/train">Training</a>
-          </li>
+          <a class="nav-link" href="/train">Training</a>
+        </li>
       </ul>
     </div>
     <div class="ml-auto">
         <button class="btn btn-outline-danger my-2 my-sm-0" type="submit"><a class="nav-link" href="/logout" style="color: black;"><b>Logout</b></a></button>
     </div>
-  </nav>
-</body>
+</nav>
+<style>
+  .category {
+    border-top: 1px solid #fff;
+    border-bottom: 1px solid #fff;
+    border-left: none;
+    border-right: none;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .category h2 {
+    margin-top: 0;
+  }
+
+  .category ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .category li {
+    display: inline-block;
+    margin-right: 10px;
+  }
+  .item-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 200px;
+  width: 200px;
+  padding: 20px;
+  border: 1px solid #fff;
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.item-box img {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  margin-bottom: 10px;
+}
+
+.item-title {
+  margin: 0;
+  font-weight: bold;
+}
+</style>
+<script>
+  function submitForm(form_id) {
+  document.getElementById(form_id).submit();
+}
+</script>
+<div id="container">
+  <div class="category">
+    <h2>Foot Placement</h2>
+    <% if(typeof placement !=="undefined" && placement.length != 0){%>
+      <ul>
+      <%for(let item of placement){%>
+        <form id="<%=item.name%>" action="/get_lesson" method="post" style="display: inline;">
+          <input type="hidden" name="id" value="<%=item.name%>">
+          <li>
+            <div class="item-box" onclick="submitForm('<%=item.name%>')" style="background-image: url('/workouts/<%=item.name%>.png'); background-size: cover;">
+              <p class="item-title" value = "<%=item.name%>" id = "<%=item.name%>" name="<%=item.name%>"><%=item.name%></p>
+            </div>
+          </li>
+        </form>
+      <%}%>
+    </ul>
+  <%}else{%>
+    <p>I'm sorry it looks like we couldn't produce any foot placement lessons.</p>
+  <%}%>
+  </div>
+  <div class="category">
+    <h2>Various Hooks</h2>
+    <ul>
+      <% if(typeof hooks !== "undefined" && hooks.length != 0){%>
+        <ul>
+          <%for(let item of hooks){%>
+            <form id="<%=item.name%>" action="/get_lessons" method="post"  style="display: inline;">
+              <input type="hidden" name="id" value="<%=item.name%>">
+              <li>
+                <div class="item-box" onclick="submitForm(<%=item.name%>)">
+                  <img src="<%=item.img_location%>" alt="<%=item.name%>">
+                  <p class="item-title" value = "<%=item.difficulty%>" id = "<%=item.name%>" name="<%=item.name%>"><%=item.name%></p>
+                </div>
+              </li>
+            </form>
+          <%}%>
+        </ul>
+      <%}else{%>
+        <p>I'm sorry it looks like there arn't any lessons on hooks.</p>
+      <%}%>
+    </ul>
+  </div>
+  <div class="category">
+    <h2>Special Moves</h2>
+    <ul>
+      <% if(typeof moves !== "undefined" && moves.length != 0){%>
+        <ul>
+          <%for(let item of moves){%>
+            <form id="<%=item.name%>" action="/get_lessons" method="post"  style="display: inline;">
+              <input type="hidden" name="id" value="<%=item.name%>">
+              <li>
+                <div class="item-box" onclick="submitForm(<%=item.name%>)">
+                  <img src="<%=item.img_location%>" alt="<%=item.name%>">
+                  <p class="item-title" value = "<%=item.difficulty%>" id = "<%=item.name%>" name="<%=item.name%>"><%=item.name%></p>
+                </div>
+              </li>
+            </form>
+          <%}%>
+        </ul>
+      <%}else{%>
+        <p>I'm sorry it looks like there arn't any lessons on special moves yet.</p>
+      <%}%>
+    </ul>
+  </div>
+  <div class="category">
+    <h2>Here are some other lessons that we have</h2>
+    <ul>
+      <% if(typeof other !== "undefined" && other.length != 0){%>
+        <ul>
+          <%for(let item of other){%>
+            <form id="<%=item.name%>" action="/get_lessons" method="post"  style="display: inline;">
+              <input type="hidden" name="id" value="<%=item.name%>">
+              <li>
+                <div class="item-box" onclick="submitForm(<%=item.name%>)">
+                  <img src="<%=item.img_location%>" alt="<%=item.name%>">
+                  <p class="item-title" value = "<%=item.difficulty%>" id = "<%=item.name%>" name="<%=item.name%>"><%=item.name%></p>
+                </div>
+              </li>
+            </form>
+          <%}%>
+          </ul>
+        <%}else{%>
+          <p>I'm sorry it looks like there arn't any other lessons available.</p>
+        <%}%>
+    </ul>
+  </div>
+  </body>

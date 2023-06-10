@@ -34,4 +34,200 @@
         <button class="btn btn-outline-danger my-2 my-sm-0" type="submit"><a class="nav-link" href="/logout" style="color: black;"><b>Logout</b></a></button>
     </div>
   </nav>
+  <form action="/train" method="post">
+    <label for="option1">What are you wanting to train?</label>
+    <select id="exercise_focus" value = "<%=type%>" name="exercise_focus">
+      <option value="overall">Overall</option>
+      <option value="Stretches">Stretches</option>
+      <option value="Endurance">Endurance</option>
+      <option value="Strength">Strength</option>
+      
+    </select>
+    <label for="Location">Nice, are you in the Gym or at Home?</label>
+    <select id="Location" name="Location">
+      <option value="gym">Gym</option>
+      <option value="home">Home</option>
+    </select>
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </form>
+  <style>
+    .category {
+      border-top: 1px solid #fff;
+      border-bottom: 1px solid #fff;
+      border-left: none;
+      border-right: none;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .category h2 {
+      margin-top: 0;
+    }
+
+    .category ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .category li {
+      display: inline-block;
+      margin-right: 10px;
+    }
+    .item-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 200px;
+    width: 200px;
+    padding: 20px;
+    border: 1px solid #fff;
+    margin-right: 10px;
+    cursor: pointer;
+  }
+
+  .item-box img {
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    margin-bottom: 10px;
+  }
+
+  .item-title {
+    margin: 0;
+    font-weight: bold;
+  }
+  </style>
+  <script>
+    function submitForm(form_id) {
+      console.log(form_id)
+    const a =document.getElementById(form_id);
+    console.log(a)
+    a.submit()
+    
+  }
+  </script>
+  <%if(workouts!=undefined){%>
+  <div id="container">
+    <div class="category">
+      <h2>Suggested Workouts</h2>
+      <% if(typeof workouts !=="undefined" && workouts.length != 0){%>
+        <ul>
+        <%for(let item of workouts){%>
+          <form action="/calculate_workout" method="post" style="display: inline;" id="<%=item.name%>">
+            <input type="hidden" name="id" value="<%=item.name%>">
+            <li>
+              <div class="item-box" value = "<%=item.difficulty%>" onclick="submitForm('<%=item.name%>')" style="background-image: url('/workouts/<%=item.name%>.png'); background-size: cover;">
+                <p class="item-title" ><%=item.name%></p>
+              </div>
+            </li>
+          </form>
+        <%}%>
+      </ul>
+    <%}else{%>
+      <p>I'm sorry it looks like we couldn't produce any Workouts meeting your criteria please try something else.</p>
+    <%}%>
+    </div>
+    <%}%>
+    <%if(stretches!=undefined){%>
+    <div class="category">
+      <h2>Stretches</h2>
+      <ul>
+        <% if(typeof stretches !== "undefined" && stretches.length != 0){%>
+          <ul>
+            <%for(let item of stretches){%>
+              
+              <form id="<%=item.name%>"  action="/calculate_workout" method="post"  style="display: inline;">
+                <input type="hidden" name="id" value="<%=item.name%>"> 
+                <li>
+                  <div class="item-box" onclick="submitForm('<%=item.name%>')">
+                    <img src="<%=item.img_location%>" alt="<%=item.name%>">
+                    <p class="item-title" value = "<%=item.difficulty%>" id = "<%=item.name%>" name="<%=item.name%>"><%=item.name%></p>
+                  </div>
+                </li>
+              </form>
+            <%}%>
+          </ul>
+        <%}else{%>
+          <p>I'm sorry it looks like there arn't any Stretches meeting your criteria please try something else.</p>
+        <%}%>
+      </ul>
+    </div>
+    <%}%>
+    <%if(endurance!=undefined){%>
+    <div class="category">
+      <h2>Endurance</h2>
+      <ul>
+        <% if(typeof endurance !== "undefined" && endurance.length != 0){%>
+          <ul>
+            <%for(let item of endurance){%>
+              
+              <form id="<%=item.name%>"  name="<%=item.name%>" action="/calculate_workout" method="post"  style="display: inline;">
+                <input type="hidden" name="id" value="<%=item.name%>"> 
+                <li>
+                  <div class="item-box" onclick="submitForm('<%=item.name%>')">
+                    <img src="<%=item.img_location%>" alt="<%=item.name%>">
+                    <p class="item-title" value = "<%=item.difficulty%>" id = "<%=item.name%>" name="<%=item.name%>"><%=item.name%></p>
+                  </div>
+                </li>
+              </form>
+            <%}%>
+          </ul>
+        <%}else{%>
+          <p>I'm sorry it looks like there arn't any Endurance exercises meeting your criteria please try something else.</p>
+        <%}%>
+      </ul>
+    </div>
+    <%}%>
+    <%if(strength!=undefined){%>
+    <div class="category">
+      <h2>Strength</h2>
+      <ul>
+        <% if(typeof strength !== "undefined" && strength.length != 0){%>
+          <ul>
+            <%for(let item of strength){%>
+              
+              <form id="<%=item.name%>"  name="<%=item.name%>" action="/calculate_workout" method="post"  style="display: inline;">
+                <input type="hidden" name="id" value="<%=item.name%>"> 
+                <li>
+                  <div class="item-box" onclick="submitForm('<%=item.name%>')">
+                    <img src="<%=item.img_location%>" alt="<%=item.name%>">
+                    <p class="item-title" value = "<%=item.difficulty%>" id = "<%=item.name%>" name="<%=item.name%>"><%=item.name%></p>
+                  </div>
+                </li>
+              </form>
+            <%}%>
+            </ul>
+          <%}else{%>
+            <p>I'm sorry it looks like there arn't any Strength exercises meeting your criteria please try something else.</p>
+          <%}%>
+      </ul>
+    </div>
+    <%}%>
+    <%if(workouts!=undefined){%>
+    <div class="category">
+      <h2>New</h2>
+      <ul>
+        <% if(typeof new_items !== "undefined" && new_items.length != 0){%>
+          <ul>
+            <%for(let item of new_items){%>
+              
+              <form id="<%=item.name%>" name="<%=item.name%>" action="/calculate_workout" method="post"  style="display: inline;">
+                <input type="hidden" name="id" value="<%=item.name%>"> 
+                <li>
+                  <div class="item-box" onclick="submitForm('<%=item.name%>')">
+                    <img src="<%=item.img_location%>" alt="<%=item.name%>">
+                    <p class="item-title" value = "<%=item.difficulty%>" id = "<%=item.name%>" name="<%=item.name%>"><%=item.name%></p>
+                  </div>
+                </li>
+              </form>
+            <%}%>
+          </ul>
+          <%}else{%>
+            <p>I'm sorry it looks like there arn't any new exercises meeting your criteria please try something else.</p>
+          <%}%>
+      </ul>
+    </div>
+    <%}%>
+  </div>
 </body>
