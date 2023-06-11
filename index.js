@@ -47,8 +47,8 @@ app.use('/favicon.ico',express.static('public/favicon.ico'));
 // create a connection to the database
 const connection = mysql.createConnection({
   host: 'localhost',
-  user: 'noahvirus',
-  password: 'N71164277v',
+  user: process.env.USER,
+  password: process.env.PASSWORD,
   database: 'climbing_db'
 });
 
