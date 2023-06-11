@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>Climbing Buddy</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+ 
   <link rel="shortcut icon" href="/favicon.ico?" type="image/x-icon">
   <link rel="icon" href="/favicon.ico?" type="image/x-icon">
   <!-- Bootstrap CSS -->
@@ -44,10 +46,8 @@
   </nav>
   <style>
     .welcome-message {
-      position: absolute;
       top: 16%;
       left: 50%;
-      transform: translate(-50%, -50%);
       text-align: center;
     }
   </style>
@@ -60,18 +60,19 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 50vh;
+      height: 20vh
     }
   
     .grid-item {
-      width: 200px;
-      height: 200px;
+      width: 25vw;
+      height: 10vh;
       border: 1px solid black;
-      margin: 10px;
+      padding-left: 4px;
+      padding-right:4px;
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 24px;
+      font-size: 10px;
       cursor: pointer;
     }
   </style>
@@ -102,6 +103,12 @@
     </div>
     </form>
   </div>
+  <div style="text-align:center;">
+    <h1>TikTok</h1>
+    <a href="https://www.tiktok.com/@noah.virus">
+        <p>@noah.virus</p>
+    </a>
+</div>
   
   
   <!-- Bootstrap JS -->
@@ -110,14 +117,7 @@
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
   <div class="container" style="display: flex; flex-direction: column; min-height: 0vh;">
     <!-- Your existing code goes here -->
-    <footer style="position: fixed; bottom: 10vh; width: 59%;">
-        <div style="text-align:center;">
-            <h1>TikTok</h1>
-            <a href="https://www.tiktok.com/@noah.virus">
-                <p>@noah.virus</p>
-            </a>
-        </div>
-    </footer>
+    
   </div>
 </body>
 </html>
