@@ -47,8 +47,8 @@ app.use('/favicon.ico',express.static('public/favicon.ico'));
 // create a connection to the database
 const connection = mysql.createConnection({
   host: 'localhost',
-  user: process.env.USER,
-  password: process.env.PASSWORD,
+  user: 'noahvirus',
+  password: 'N71164277v',
   database: 'climbing_db'
 });
 
@@ -448,7 +448,7 @@ app.get('/train',async(req,res)=>{
 })
 //render payment page
 app.get('/payment',async(req,res)=>{
-  const Membership = await checkMembership(req);
+  const Membership = false
   if(req.session.userId!==undefined && !Membership){
     res.render('payment', {clientID: process.env.PAYPAL_CLIENT_ID});
   }
