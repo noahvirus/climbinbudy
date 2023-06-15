@@ -1,4 +1,5 @@
 <%-include('partials/website_tab_data.ejs')%>
+<head>
     <style>
       /* Add custom styles here */
       .container {
@@ -12,6 +13,7 @@
     </style>
   </head>
   <body>
+    <%-include('partials/navbar.ejs')%>
     <div class="container" >
       <h1>Uh oh</h1>
       
@@ -24,6 +26,4 @@
       <p><img src="back_404.png" alt="uh oh no picture either"></p>
     </div>
     <!-- Add Bootstrap JS link here -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-  </body>
-</html>
+    <%-include('partials/foot.ejs')%>

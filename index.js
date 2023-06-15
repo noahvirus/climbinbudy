@@ -15,7 +15,7 @@ const { error } = require('console');
 const path = require('path')
 var favicon = require('serve-favicon')
 const paypal = require('@paypal/checkout-server-sdk')
-const Environment = paypal.core.SandboxEnvironment;
+const Environment = paypal.core.LiveEnvironment;
 const PayPalClient = new paypal.core.PayPalHttpClient(new Environment(process.env.PAYPAL_CLIENT_ID,process.env.PAYPAL_CLIENT_SECRET))
 //get workout data
 async function checkMembership(req){

@@ -1,6 +1,7 @@
 <%-include('partials/website_tab_data.ejs')%>
+<head>
 <script src="https://www.paypal.com/sdk/js?client-id=<%=clientID%>"></script>
-<script src="/script_for_payment.js"></script>
+<%-include('scripts/script_for_payment')%>
   </head>
   <body>
     <style>a{font-family: Arial, Helvetica, sans-serif;}</style>
@@ -16,6 +17,4 @@
         </form>
       </div>
     </div>
-  </body>
-  
-</html>
+    <%-include('partials/foot.ejs')%>
