@@ -84,9 +84,12 @@ app.get('/', (req, res) => {
   if(req.session.userId!==undefined){
     res.redirect('home');
   }else{
-    res.redirect('login');
+    res.redirect('info');
   }
 });
+app.get('/info',(req,res)=>{
+  res.render('info')
+})
 //brings you to the register page
 app.get('/register', (req, res) => {
   const errorMessage = req.session.errorMessage;
