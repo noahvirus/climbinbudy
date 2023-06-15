@@ -1,4 +1,6 @@
 require('dotenv').config()
+const sql_login = require('./sql_login.json')
+console.log(sql_login)
 const util = require('util')
 const fs = require('fs')
 var express = require('express');
@@ -47,8 +49,8 @@ app.use('/favicon.ico',express.static('public/favicon.ico'));
 // create a connection to the database
 const connection = mysql.createConnection({
   host: '127.0.0.1',
-  user: process.env.USER,
-  password: process.env.PASSWORD,
+  user: sql_login.username,
+  password: sql_login.password,
   database: 'climbing_db'
 });
 
