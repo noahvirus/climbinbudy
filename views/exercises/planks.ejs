@@ -1,0 +1,62 @@
+<%-include('../partials/website_tab_data.ejs')%>
+<body>
+  <%-include('../partials/navbar.ejs')%>
+    <script>
+        function submitForm(i){
+            const Form=document.getElementById(i);
+            Form.submit()
+        }
+    </script>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+    }
+  
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: left;
+    }
+    .next-page {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  z-index: 9999;
+}
+
+.arrow {
+  width: 12px;
+  height: 12px;
+  border-top: 2px solid #fff;
+  border-right: 2px solid #fff;
+  transform: rotate(45deg);
+  margin-bottom: 2px;
+}
+  </style>
+  <div class="container"></div>
+  <h1>Plank's</h1>
+  <p>These are a climbing drill where you pick 4 routes you can reliably climb but are still slightly difficult, do them back to back noting the amount of time the entire set takes, then resting for twice as long as the set you just did and repeat this four times</p>
+  <h1>Benefits of Four by Four's</h1>
+  <p>Four by Four's are a great endurance training, back to back climbing is the best way to strengthen your endurance as well as giving you more strength and the ability to hold for long periods of time, which will be crucial for climbing a higher grades.</p>
+  <h1>The Risks of Four by Fours</h1>
+  <p>As with all exercises over exertion injuries are possible, while this is a relatively safe exercise know your limits, especially while rock climbing. The last thing that will help you improve as a climber is an injury so know when to quit</p>
+  <h1>Tips for success</h1>
+  <p>This exercise focuses more on endurance and increasing strength by working muscle repeatedly, you do not need to climb something really hard for you to feel the burn, try to climb about 3v grades below your max for this.</p>
+  
+</div>
+<a href="exercises" class="next-page">
+  <span class="arrow"></span>
+</a>
+
+
+  
+<%-include('../partials/foot.ejs')%>

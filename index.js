@@ -23,7 +23,7 @@ const PayPalClient = new paypal.core.PayPalHttpClient(new Environment(process.en
 async function checkMembership(req){
   const sql = "select good_until from users where id = ? and good_until > CURDATE()";
   const values = [req.session.userId]
-  const [rows, fields] = await connection.promise().query(sql, values);
+  const [rows, fields] = await req.Connection.promise().query(sql, values);
   if(rows[0]!==undefined){
   return true;
   }else{
@@ -47,29 +47,57 @@ app.use(express.static('public'));
 //sets favicon
 app.use('/favicon.ico',express.static('public/favicon.ico'));
 // create a connection to the database
-const connection = mysql.createConnection({
+const pool = mysql.createPool({
+  connectionLimit: 10, // Adjust this value based on your application's needs
   host: '127.0.0.1',
   user: sql_login.username,
   password: sql_login.password,
   database: 'climbing_db'
 });
-
 // connect to the database
-connection.connect((err) => {
-  if (err) {
-    console.error('Error connecting to database: ' + err.stack);
-    return;
+function getConnection() {
+  return new Promise((resolve, reject) => {
+    pool.getConnection((err, connection) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(connection);
+      }
+    });
+  });
+}
+app.use(async (req, res, next) => {
+  try {
+    const connection = await getConnection();
+    req.Connection = connection;
+    next();
+  } catch (err) {
+    console.error('Error acquiring database connection:', err);
+    res.status(500).send('Internal Server Error');
   }
-
-  
 });
+app.use((req, res, next) => {
+  if (req.Connection) {
+    req.Connection.release();
+  }
+  next();
+});
+
+
+
+
+
+
+
+
+
 //make a helper for the register class to help check if a user or email already exist
-function checkExistingUser(username, email) {
+function checkExistingUser(username, email,req) {
   return new Promise((resolve, reject) => {
     const sql = 'SELECT * FROM users WHERE username = ? OR email = ?';
     const values = [username, email];
 
-    connection.query(sql, values, (error, results) => {
+    req.Connection.query(sql, values, (error, results) => {
       if (error) {
         console.error('Error executing MySQL query: ' + error.stack);
         reject(error);
@@ -102,7 +130,7 @@ app.post('/register', async (req, res) => {
     const username = req.body.username;
     const email = req.body.email;
     const password = req.body.password;
-    const isuser = await checkExistingUser(username,email);
+    const isuser = await checkExistingUser(username,email,req);
     if(isuser){
         req.session.errorMessage = 'Username or Email is already taken';
         res.render('register', { errorMessage: req.session.errorMessage });
@@ -120,7 +148,7 @@ app.post('/register', async (req, res) => {
       const sql = 'INSERT INTO users (username, email, password, good_until) VALUES (?, ?, ?,DATE_ADD(CURDATE(), interval 7 DAY))';
       const values = [username, email, hashedPassword, formattedDate];
   
-      connection.query(sql, values, (err, result) => {
+      req.Connection.query(sql, values, (err, result) => {
         if (err) throw err;
         req.session.userId = result.insertId;
         req.session.username = username
@@ -148,7 +176,7 @@ app.post('/register', async (req, res) => {
       // Get the user with the given username from the database
       const sql = 'SELECT * FROM users WHERE username = ?';
       const values = [username];
-      const [rows, fields] = await connection.promise().query(sql, values);
+      const [rows, fields] = await req.Connection.promise().query(sql, values);
       
       // If no user was found, display an error message
       if (rows.length === 0) {
@@ -189,7 +217,7 @@ app.post('/register', async (req, res) => {
       
       let sql = 'select endurance, flexibility, strength from climb_info where user_id = ?';
       let values = [req.session.userId];
-      let [rows, fields] = await connection.promise().query(sql, values);
+      let [rows, fields] = await req.Connection.promise().query(sql, values);
       const data = rows[0];
       let divs = [];
       for(let key in data){
@@ -221,7 +249,7 @@ app.get('/evaluation',async (req,res)=>{
 async function update_general_climbing_info(req){
   const sql = 'SELECT overall, overhang, slab, dyno FROM climb_info WHERE user_id = ?;'
   const values = [req.session.userId]
-  const [rows, fields] = await connection.promise().query(sql, values);
+  const [rows, fields] = await req.Connection.promise().query(sql, values);
   let overall = rows[0].overall;
   let overhang = rows[0].overhang;
   let slab = rows[0].slab;
@@ -232,7 +260,7 @@ async function update_general_climbing_info(req){
   if(req.body.overhang!==undefined){overhang= req.body.overhang}
   const new_val = [overhang,slab,dyno,overall,req.session.userId]
   sql1 = "UPDATE climb_info SET overhang = ?, slab = ?, dyno = ?, overall = ? WHERE user_id = ?;"
-  await connection.promise().query(sql1, new_val);
+  await req.Connection.promise().query(sql1, new_val);
 }
 app.post('/submit-rating',async(req,res)=>{
   if(req.session.userId!==undefined){
@@ -267,7 +295,7 @@ async function update_holds(req){
   console.log(req.body)
   const sql = 'SELECT endurance, strength, flexibility FROM climb_info WHERE user_id = ?;'
   const values = [req.session.userId]
-  const [rows, fields] = await connection.promise().query(sql, values);
+  const [rows, fields] = await req.Connection.promise().query(sql, values);
   
   let endurance = rows[0].endurance;
   let strength = rows[0].strength;
@@ -278,7 +306,7 @@ async function update_holds(req){
   const new_val = [endurance,strength,flexibility,req.session.userId]
   
   sql1 = "UPDATE climb_info SET endurance = ?, strength = ?, flexibility = ? WHERE user_id = ?;"
-  connection.promise().query(sql1, new_val);
+  req.Connection.promise().query(sql1, new_val);
 }
 app.post('/submit-holds', (req,res)=>{
   
@@ -300,7 +328,7 @@ app.get('/learn',async(req,res)=>{
     placement=[]
     new_items=[]
     var get_lesson= "select * from lessons;"
-    const [lessons, test] = await connection.promise().query(get_lesson);
+    const [lessons, test] = await req.Connection.promise().query(get_lesson);
     for(let lesson of lessons){
       if(lesson.focus == 'other'){
         other.push(lesson);
@@ -332,7 +360,7 @@ app.post('/train',async(req,res)=>{
     const type = req.body.id;
     const sql = "select overall from climb_info where user_id = ?";
     const values = [req.session.userId]
-    const [rows, fields] = await connection.promise().query(sql, values);
+    const [rows, fields] = await req.Connection.promise().query(sql, values);
     const overall= rows[0].overall;
     workouts=[
       {
@@ -358,7 +386,7 @@ app.post('/train',async(req,res)=>{
       }else{
         get_exercises= "select * from exercises where difficulty=1"
       }
-      const [exercises, test] = await connection.promise().query(get_exercises);
+      const [exercises, test] = await req.Connection.promise().query(get_exercises);
       for(let exercise of exercises){
         if(exercise.focus == 'stretch'){
           stretches.push(exercise);
@@ -379,7 +407,7 @@ app.post('/train',async(req,res)=>{
       }else{
         get_exercises= "select * from exercises where difficulty=1 and gym=0"
       }
-      const [exercises, test] = await connection.promise().query(get_exercises);
+      const [exercises, test] = await req.Connection.promise().query(get_exercises);
       for(let exercise of exercises){
         if(exercise.focus == 'stretch'){
           stretches.push(exercise);
@@ -401,7 +429,7 @@ app.post('/train',async(req,res)=>{
     }else{
       get_exercises= "select * from exercises where difficulty=1"
     }
-    const [exercises, test] = await connection.promise().query(get_exercises);
+    const [exercises, test] = await req.Connection.promise().query(get_exercises);
     for(let exercise of exercises){
       if(exercise.focus == 'stretch'){
         stretches.push(exercise);
@@ -507,7 +535,7 @@ app.get('/handle_success', async (req,res)=>{
   const username = req.session.userId;
   const sql = "update users set good_until = DATE_ADD(CURDATE(), interval 1 MONTH) where id = ?";
   const values = [req.session.userId]
-  const [rows, fields] = await connection.promise().query(sql, values);
+  const [rows, fields] = await req.Connection.promise().query(sql, values);
   res.redirect('/home');
 })
 function get_random (list) {
@@ -616,17 +644,4 @@ app.post('/get_lesson',async(req,res)=>{
   });
 app.listen(3000, () => {
     console.log('Server is running on port 3000');
-});
-process.on('SIGINT', function() {
-  console.log('Closing database connection...');
-  
-  // close the database connection
-  connection.end(function(err) {
-    if (err) {
-      console.error(err);
-      process.exit(1);
-    }
-    console.log('Database connection closed.');
-    process.exit();
-  });
 });
